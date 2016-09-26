@@ -1,0 +1,6 @@
+﻿  main.cpp
+c:\interactive_computer_graphics\main.cpp(40): warning C4244: 'initializing' : conversion from 'int' to 'float', possible loss of data
+c:\interactive_computer_graphics\main.cpp(71): warning C4305: 'argument' : truncation from 'double' to 'GLclampf'
+  glsupport.cpp
+  Generating Code...
+  TemplateProject.vcxproj -> C:\Interactive_Computer_Graphics\Debug\TemplateProject.exe
