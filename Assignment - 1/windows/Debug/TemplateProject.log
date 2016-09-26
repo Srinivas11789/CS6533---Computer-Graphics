@@ -1,0 +1,6 @@
+﻿  main.cpp
+t:\nyu\fall2016\classes_semester1\interactive computer graphics\class2\windows_template_updated\windows\main.cpp(107): warning C4305: '+=' : truncation from 'double' to 'float'
+t:\nyu\fall2016\classes_semester1\interactive computer graphics\class2\windows_template_updated\windows\main.cpp(110): warning C4305: '-=' : truncation from 'double' to 'float'
+t:\nyu\fall2016\classes_semester1\interactive computer graphics\class2\windows_template_updated\windows\main.cpp(117): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+t:\nyu\fall2016\classes_semester1\interactive computer graphics\class2\windows_template_updated\windows\main.cpp(122): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+  TemplateProject.vcxproj -> T:\NYU\Fall2016\Classes_Semester1\Interactive Computer Graphics\Class2\Windows_Template_Updated\windows\Debug\TemplateProject.exe
