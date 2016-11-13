@@ -1,0 +1,6 @@
+﻿  main.cpp
+c:\users\srinivas11789\documents\github\cs6533---computer-graphics\assignment - 1\main.cpp(118): warning C4305: '+=' : truncation from 'double' to 'float'
+c:\users\srinivas11789\documents\github\cs6533---computer-graphics\assignment - 1\main.cpp(121): warning C4305: '-=' : truncation from 'double' to 'float'
+c:\users\srinivas11789\documents\github\cs6533---computer-graphics\assignment - 1\main.cpp(124): warning C4305: '+=' : truncation from 'double' to 'float'
+c:\users\srinivas11789\documents\github\cs6533---computer-graphics\assignment - 1\main.cpp(127): warning C4305: '-=' : truncation from 'double' to 'float'
+  TemplateProject.vcxproj -> C:\Users\Srinivas11789\Documents\GitHub\CS6533---Computer-Graphics\Assignment - 1\Debug\TemplateProject.exe
