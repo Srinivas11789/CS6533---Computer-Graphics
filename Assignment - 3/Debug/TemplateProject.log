@@ -1,6 +1,1 @@
-﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V120\Microsoft.CppCommon.targets(341,5): warning MSB8015: Forcing a rebuild of all source files due to the contents of "C:\Users\Srinivas11789\Documents\GitHub\CS6533---Computer-Graphics\Assignment - 3\Debug\TemplateProject.tlog\cl.command.1.tlog" being invalid.
-  Skipping... (no relevant changes detected)
-  main.cpp
-  glsupport.cpp
-C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V120\Microsoft.CppCommon.targets(341,5): warning MSB8015: Forcing a rebuild of all source files due to the contents of "C:\Users\Srinivas11789\Documents\GitHub\CS6533---Computer-Graphics\Assignment - 3\Debug\TemplateProject.tlog\cl.command.1.tlog" being invalid.
-  TemplateProject.vcxproj -> C:\Users\Srinivas11789\Documents\GitHub\CS6533---Computer-Graphics\Assignment - 3\Debug\TemplateProject.exe
+﻿  TemplateProject.vcxproj -> T:\PPP\CS6533---Computer-Graphics\Assignment - 3\Debug\TemplateProject.exe

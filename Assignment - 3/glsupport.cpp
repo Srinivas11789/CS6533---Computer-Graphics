@@ -109,6 +109,7 @@ void linkShader(GLuint programHandle, GLuint vs, GLuint fs) {
 
   if (!linked)
     throw runtime_error("fails to link shaders");
+
 }
 
 
