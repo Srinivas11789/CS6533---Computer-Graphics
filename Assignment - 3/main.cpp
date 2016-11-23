@@ -402,19 +402,6 @@ void model1(string type) {
 
 }
 
-void model_Gen(string type, GLuint vertex, GLuint index, std::vector<VertexPNTBTG> mv, std::vector<unsigned short> mi, int num) {
-
-	loadObjFile(type, mv, mi);
-	glGenBuffers(1, &vertex);
-	glBindBuffer(GL_ARRAY_BUFFER, vertex);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(VertexPNTBTG) * mv.size(), mv.data(), GL_STATIC_DRAW);
-	glGenBuffers(1, &index);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * mi.size(), mi.data(), GL_STATIC_DRAW);
-	num = mi.size();
-
-}
-
 // Converting the Light Position to Eye Space
 Cvec4 Light_Coord(Cvec3 c) {
 	return (inv(eye) * Cvec4(c[0], c[1], c[2], 1.0));
