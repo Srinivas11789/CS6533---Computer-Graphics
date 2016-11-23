@@ -5,10 +5,10 @@
 #include "quat.h"
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
-//#include "arcball.h"
+#include <algorithm> 
 #define NULL 0
 
-// Buffer Objects 
+// Buffer Objects - Cube, Sphere, Plane, Model 1 2 3 
 GLuint vertexBO, vertexBO1, vertexBO2, vertexBO3, vertexBO4, vertexBO5;
 GLuint indexBO, indexBO1, indexBO2, indexBO3, indexBO4, indexBO5;
 
@@ -24,29 +24,40 @@ GLuint tangentAttribute;
 
 //Uniform Location Variables
 
+// Matrix Uniforms
 GLuint modelviewMatrixUniformLocation;
 GLuint projectionMatrixUniformLocation;
 GLuint normalMatrixUniformLocation;
-GLuint colorUniformLocation;
+// Light Position Uniforms
 GLuint lightDirectionUniformLocation0;
 GLuint lightDirectionUniformLocation1;
-GLuint SpecularLightUniform0;
-GLuint SpecularLightUniform1;
+GLuint lightDirectionUniformLocation2;
+// Light Color Uniforms
 GLuint lightColorUniform0;
 GLuint lightColorUniform1;
-GLuint lightDirectionUniformLocation2;
-GLuint SpecularLightUniform2;
 GLuint lightColorUniform2;
+// Specular Light Uniforms
+GLuint SpecularLightUniform0;
+GLuint SpecularLightUniform1;
+GLuint SpecularLightUniform2;
+// Uniform to shift between VaryingNormal and TexureNormal
+GLuint text_off_uniform;
 
 //Texture
+//Diffuse
 GLuint diffuseTexture;
 GLuint diffuseTexture1;
 GLuint diffuseTexture2;
-GLuint diffuseTexture3;
+//Specular
 GLuint specularTexture;
 GLuint specularTexture1;
+GLuint specularTexture2;
+//Normal
 GLuint normalTexture;
 GLuint normalTexture1;
+GLuint normalTexture2;
+
+// Texture Uniform Locations
 GLuint specularUniformLocation;
 GLuint specularUniformLocation1;
 GLuint diffuseTextureUniformLocation;
@@ -57,9 +68,14 @@ GLuint normalTextureUniformLocation;
 int numIndices;
 
 //Mouse Movements - Arcball
+int screen_width = 500;
+int screen_height = 500;
 int last_mx = 0, last_my = 0, cur_mx = 0, cur_my = 0;
 int arcball_on = false;
 float angle = 0;
+Quat arc;
+
+// Matrix Declarations
 Matrix4 arcMatrix;
 Matrix4 eye;
 Matrix4 projectionMatrix;
@@ -101,7 +117,7 @@ struct Transform {
 struct Geometry {
 	GLuint vertex;
 	GLuint index;
-	void Draw(GLuint positionAttribute, GLuint normalAttribute, GLuint textureAttribute, string type) {
+	void Draw(GLuint positionAttribute, GLuint normalAttribute, GLuint textureAttribute, GLuint binormalAttribute, GLuint tangentAttribute, string type) {
 		// bind buffer objects and draw
 		if (type == "cube") {
 			vertex = vertexBO;
@@ -135,13 +151,10 @@ struct Geometry {
 		glEnableVertexAttribArray(positionAttribute);
 		glVertexAttribPointer(normalAttribute, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPNTBTG), (void*)offsetof(VertexPNTBTG, n));
 		glEnableVertexAttribArray(normalAttribute);
-		glEnableVertexAttribArray(textureAttribute);
 		glVertexAttribPointer(textureAttribute, 2, GL_FLOAT, GL_FALSE, sizeof(VertexPNTBTG), (void*)offsetof(VertexPNTBTG, t));
 		glEnableVertexAttribArray(textureAttribute);
-		glEnableVertexAttribArray(binormalAttribute);
 		glVertexAttribPointer(binormalAttribute, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPNTBTG), (void*)offsetof(VertexPNTBTG, b));
 		glEnableVertexAttribArray(binormalAttribute);
-		glEnableVertexAttribArray(tangentAttribute);
 		glVertexAttribPointer(tangentAttribute, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPNTBTG), (void*)offsetof(VertexPNTBTG, tg));
 		glEnableVertexAttribArray(tangentAttribute);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index);
@@ -157,7 +170,7 @@ struct Entity {
 	Entity *parent;
 	Matrix4 m;
 
-	void Draw(Matrix4 eyeInverse, GLuint positionAttribute, GLuint normalAttribute, GLuint textureAttribute,
+	void Draw(Matrix4 eyeInverse, GLuint positionAttribute, GLuint normalAttribute, GLuint textureAttribute, GLuint binormalAttribute, GLuint tangentAttribute,
 		GLuint modelviewMatrixUniformLocation, GLuint normalMatrixUniformLocation, string type) {
 		// create modelview matrix
 		// Hierarchy Parent Setup Component
@@ -186,7 +199,7 @@ struct Entity {
 		projectionMatrix.writeToColumnMajorMatrix(glmatrixProjection);
 		glUniformMatrix4fv(projectionMatrixUniformLocation, 1, false, glmatrixProjection);
 		// Geometry Structure Draw Call
-		geometry.Draw(positionAttribute, normalAttribute, textureAttribute, type);
+		geometry.Draw(positionAttribute, normalAttribute, textureAttribute, binormalAttribute, tangentAttribute, type);
 	}
 };
 
@@ -210,6 +223,7 @@ void cube() {
 		
 	}
 
+//Sphere
 void sphere() {
 
 	//Sphere Parameters
@@ -265,7 +279,7 @@ void calculateFaceTangent(const Cvec3f &v1, const Cvec3f &v2, const Cvec3f &v3, 
 	}
 }
 
-// Tiny Object Loading
+// Tiny Object Loading - Changes Upto the Normal Maps - Function used by Monk and Batman Model
 void loadObjFile(const std::string &fileName, std::vector<VertexPNTBTG> &outVertices, std::vector<unsigned short> &outIndices) {
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
@@ -310,6 +324,7 @@ void loadObjFile(const std::string &fileName, std::vector<VertexPNTBTG> &outVert
 	}
 }
 
+// Function Used By the LUCY Object - Without the textures containing Only the Lights
 void loadObjFile1(const std::string &fileName, std::vector<VertexPNTBTG> &outVertices, std::vector<unsigned
 	short> &outIndices) {
 	tinyobj::attrib_t attrib;
@@ -340,6 +355,7 @@ void loadObjFile1(const std::string &fileName, std::vector<VertexPNTBTG> &outVer
 	}
 }
 
+// Model Creation - Monk and Batman
 void model(string type) {
 	std::vector<VertexPNTBTG> meshVertices;
 	std::vector<unsigned short> meshIndices;
@@ -368,6 +384,9 @@ void model2(string type) {
 
 }
 
+
+// Model Creation - Lucy 
+
 void model1(string type) {
 
 	std::vector<VertexPNTBTG> meshVertices1;
@@ -383,36 +402,58 @@ void model1(string type) {
 
 }
 
-//void arcball_operate() {
+void model_Gen(string type, GLuint vertex, GLuint index, std::vector<VertexPNTBTG> mv, std::vector<unsigned short> mi, int num) {
 
+	loadObjFile(type, mv, mi);
+	glGenBuffers(1, &vertex);
+	glBindBuffer(GL_ARRAY_BUFFER, vertex);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(VertexPNTBTG) * mv.size(), mv.data(), GL_STATIC_DRAW);
+	glGenBuffers(1, &index);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * mi.size(), mi.data(), GL_STATIC_DRAW);
+	num = mi.size();
 
-//}
+}
 
+// Converting the Light Position to Eye Space
+Cvec4 Light_Coord(Cvec3 c) {
+	return (inv(eye) * Cvec4(c[0], c[1], c[2], 1.0));
+}
 
 // Rendering Function which creates the Eye Matrix and maintains each object parameters
 void display(void) {
+
     glClear(GL_COLOR_BUFFER_BIT);
 	glClearDepth(0.0f);
 	glEnable(GL_DEPTH_TEST);
 
+	// Varying Time Variable to Rotate the Light
+	float time = glutGet(GLUT_ELAPSED_TIME);
+
 	//Eye Matrix Component
 	eye = arcMatrix * eye.makeTranslation(Cvec3(0.0, 0.0, 9.0));
-	//eye = eye.makeTranslation(Cvec3(0.0, 0.0, 9.0));
-	eye = inv(eye);
-	
-	//glUniform3f(colorUniformLocation, 0.0, 5.0, 0.0);
-	//glUniform3f(colorUniformLocation, 5.0, 0.0, 0.0);
-	glUniform3f(lightDirectionUniformLocation0, 4.0, 4.0, 0.0);
+
+	// Light Position in the Eye Space
+	Cvec4 light_pos1 = Light_Coord(Cvec3((float)sin(time / 1000.0f) * 10, 4.0, -3.0));
+	Cvec4 light_pos2 = Light_Coord(Cvec3(-3.0, 5.0, 1.0));
+	Cvec4 light_pos3 = Light_Coord(Cvec3(2.0, 3.0, (float)sin(time / 1000.0f) * 10));
+	Cvec4 light_pos4 = Light_Coord(Cvec3(3.0, 3.0, -6.0));
+
+	// The LUCY Object Rendering
+	// LUCY Object Lighting using Varying Normal - No Texture
+	glUniform3f(lightDirectionUniformLocation0, light_pos1[0], light_pos1[1], light_pos1[2]);
 	glUniform3f(lightColorUniform0, 1.0, 0.5, 0.0);
 	glUniform3f(SpecularLightUniform0, 1.0, 1.0, 1.0);
-	glUniform3f(lightDirectionUniformLocation1, -4.0, 3.0, 0.0);
+	glUniform3f(lightDirectionUniformLocation1, light_pos2[0], light_pos2[1], light_pos2[2]);
 	glUniform3f(lightColorUniform1, 1.0, 0.4, 0.0);
 	glUniform3f(SpecularLightUniform1, 1.0, 1.0, 1.0);
-	glUniform3f(lightDirectionUniformLocation2, 0.0, 2.0, 0.0);
+	glUniform3f(lightDirectionUniformLocation2, light_pos3[0], light_pos3[1], light_pos3[2]);
 	glUniform3f(lightColorUniform2, 1.0, 1.0, 0.0);
-	glUniform3f(SpecularLightUniform2, 1.0, 0.7, 1.0);
+	glUniform3f(SpecularLightUniform2, 1.0, 1.0, 1.0);
+	glUniform1i(text_off_uniform, 1);
 	
-	
+	// Lucy Object and Draw Call
+
 	string type2 = "model2";
 	Entity *parent1;
 	parent1 = new Entity();
@@ -420,20 +461,23 @@ void display(void) {
 	parent1->transform.position = Cvec3(1.0, -2.0, 1.0);
 	parent1->transform.scale = Cvec3(25.0, 25.0, 25.0);
 	parent1->parent = NULL;
-	parent1->Draw(eye, positionAttribute, normalAttribute, texCoordAttribute, modelviewMatrixUniformLocation, normalMatrixUniformLocation, type2);
-	
-	glUniform3f(lightDirectionUniformLocation0, 4.0, 2.0, 0.0);
+	parent1->Draw(inv(eye), positionAttribute, normalAttribute, texCoordAttribute, binormalAttribute, tangentAttribute, modelviewMatrixUniformLocation, normalMatrixUniformLocation, type2);
+
+	// The Monk Object Rendering
+
+	// Light Uniform Setting for Monk Model - texture Normal
+	glUniform3f(lightDirectionUniformLocation0, light_pos1[0], light_pos1[1], light_pos1[2]);
 	glUniform3f(lightColorUniform0, 1.0, 1.0, 1.0);
 	glUniform3f(SpecularLightUniform0, 1.0, 1.0, 1.0);
-	glUniform3f(lightDirectionUniformLocation1, -4.0, 2.0, 0.0);
+	glUniform3f(lightDirectionUniformLocation1, light_pos2[0], light_pos2[1], light_pos2[2]);
 	glUniform3f(lightColorUniform1, 1.0, 1.0, 1.0);
 	glUniform3f(SpecularLightUniform1, 1.0, 1.0, 1.0);
-	glUniform3f(lightDirectionUniformLocation2, 0.0, 2.0, 0.0);
+	glUniform3f(lightDirectionUniformLocation2, light_pos3[0], light_pos3[1], light_pos3[2]);
 	glUniform3f(lightColorUniform2, 1.0, 1.0, 1.0);
 	glUniform3f(SpecularLightUniform2, 1.0, 1.0, 1.0);
-	
+	glUniform1i(text_off_uniform, 0);
 
-	//Texture
+	//Monk Model Texture
 	glUniform1i(diffuseTextureUniformLocation, 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
@@ -443,29 +487,32 @@ void display(void) {
 	glUniform1i(normalTextureUniformLocation, 2);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, normalTexture);
-
+	glUniform1i(text_off_uniform, 0);
+	
+	// Monk Model Object and Draw
 	string type = "model";
 	Entity *parent;
 	parent = new Entity();
 	parent->transform.rotation = Quat::makeYRotation(0.0f);
-	parent->transform.position = Cvec3(-1.0, -2.0, 1.0);
+	parent->transform.position = Cvec3(-1.5, -2.0, 1.0);
 	parent->transform.scale = Cvec3(0.03, 0.03, 0.03);
 	parent->parent = NULL;
-	parent->Draw(eye, positionAttribute, normalAttribute, texCoordAttribute, modelviewMatrixUniformLocation, normalMatrixUniformLocation, type);
-	//parent->Draw(eye, positionAttribute, normalAttribute, modelviewMatrixUniformLocation, textureUniformLocation, type);
+	parent->Draw(inv(eye), positionAttribute, normalAttribute, texCoordAttribute, binormalAttribute, tangentAttribute, modelviewMatrixUniformLocation, normalMatrixUniformLocation, type);
 
-	glUniform3f(lightDirectionUniformLocation0, 4.0, 2.0, 0.0);
+    // The Batman Object Rendering
+	// Batman Object Lighting - texture Normal
+	glUniform3f(lightDirectionUniformLocation0, light_pos1[0], light_pos1[1], light_pos1[2]);
 	glUniform3f(lightColorUniform0, 1.0, 1.0, 1.0);
 	glUniform3f(SpecularLightUniform0, 1.0, 1.0, 1.0);
-	glUniform3f(lightDirectionUniformLocation1, -4.0, 2.0, 0.0);
+	glUniform3f(lightDirectionUniformLocation1, light_pos2[0], light_pos2[1], light_pos2[2]);
 	glUniform3f(lightColorUniform1, 1.0, 1.0, 1.0);
 	glUniform3f(SpecularLightUniform1, 1.0, 1.0, 1.0);
-	glUniform3f(lightDirectionUniformLocation2, 0.0, 2.0, 0.0);
+	glUniform3f(lightDirectionUniformLocation2, light_pos4[0], light_pos4[1], light_pos4[2]);
 	glUniform3f(lightColorUniform2, 1.0, 1.0, 1.0);
 	glUniform3f(SpecularLightUniform2, 1.0, 1.0, 1.0);
+	glUniform1i(text_off_uniform, 0);
 
-
-	//Texture
+	//Batman Texture
 	glUniform1i(diffuseTextureUniformLocation, 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, diffuseTexture2);
@@ -475,10 +522,8 @@ void display(void) {
 	glUniform1i(normalTextureUniformLocation, 2);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, normalTexture1);
-	//glUniform1i(diffuseTextureUniformLocation, 1);
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, diffuseTexture3);
 
+	// Batman Object and Draw Call
 	string type3 = "model3";
 	Entity *parent2;
 	parent2 = new Entity();
@@ -486,26 +531,34 @@ void display(void) {
 	parent2->transform.position = Cvec3(0.0, -2.0, -2.0);
 	parent2->transform.scale = Cvec3(2.3, 2.3, 2.3);
 	parent2->parent = NULL;
-	parent2->Draw(eye, positionAttribute, normalAttribute, texCoordAttribute, modelviewMatrixUniformLocation, normalMatrixUniformLocation, type3);
+	parent2->Draw(inv(eye), positionAttribute, normalAttribute, texCoordAttribute, binormalAttribute, tangentAttribute, modelviewMatrixUniformLocation, normalMatrixUniformLocation, type3);
 	
 
-	//glUniform3f(colorUniformLocation, 5.0, 0.0, 0.0);
-	glUniform3f(lightDirectionUniformLocation0, 0.0, 3.0, 0.0);
+	// Floor Plane Rendering
+	// Floor Light - texture Normal
+	glUniform3f(lightDirectionUniformLocation0, light_pos1[0], light_pos1[1], light_pos1[2]);
 	glUniform3f(lightColorUniform0, 1.0, 1.0, 1.0);
 	glUniform3f(SpecularLightUniform0, 1.0, 1.0, 1.0);
-	glUniform3f(lightDirectionUniformLocation1, 0.0, 5.0, 0.0);
-	glUniform3f(lightColorUniform1, 1.0, 1.0, 1.0);
+	glUniform3f(lightDirectionUniformLocation1, light_pos2[0], light_pos2[1], light_pos2[2]);
+	glUniform3f(lightColorUniform1, 1.0, 0.0, 0.0);
 	glUniform3f(SpecularLightUniform1, 1.0, 1.0, 1.0);
-	glUniform3f(lightDirectionUniformLocation2, 0.0, 2.0, 0.0);
-	glUniform3f(lightColorUniform2, 1.0, 1.0, 1.0);
+	glUniform3f(lightDirectionUniformLocation2, light_pos3[0], light_pos3[1], light_pos3[2]);
+	glUniform3f(lightColorUniform2, 0.0, 0.0, 1.0);
 	glUniform3f(SpecularLightUniform2, 1.0, 1.0, 1.0);
 
-
+	// Floor Texture
 	glUniform1i(diffuseTextureUniformLocation, 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, diffuseTexture1);
+	glUniform1i(specularUniformLocation, 1);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, specularTexture2);
+	glUniform1i(normalTextureUniformLocation, 2);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, normalTexture2);
+	glUniform1i(text_off_uniform, 0);
 
-	//glUniform3f(colorUniformLocation, 0.5, 0.9, 2.0);
+	// Floor Object and Draw Call
 	string type1 = "plane";
 	Entity *plane1;
 	plane1 = new Entity();
@@ -513,21 +566,54 @@ void display(void) {
 	plane1->transform.position = Cvec3(0.0, -2.0, 0.0);
 	plane1->transform.scale = Cvec3(0.7, 0.7, 0.7);
 	plane1->parent = NULL;
-	plane1->Draw(eye, positionAttribute, normalAttribute, texCoordAttribute, modelviewMatrixUniformLocation, normalMatrixUniformLocation, type1);
+	plane1->Draw(inv(eye), positionAttribute, normalAttribute, texCoordAttribute, binormalAttribute, tangentAttribute, modelviewMatrixUniformLocation, normalMatrixUniformLocation, type1);
 	
 	// Attributes Disable
 
 	glDisableVertexAttribArray(positionAttribute);
 	glDisableVertexAttribArray(normalAttribute);
 	glDisableVertexAttribArray(texCoordAttribute);
+	glDisableVertexAttribArray(tangentAttribute);
+	glDisableVertexAttribArray(binormalAttribute);
 
     glutSwapBuffers();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glFlush();
 }
 
+// Key A and D to Move the Scene about the Y Axis
 void keyboard(unsigned char key, int x, int y) {
+	switch (key) {
+	case 'a':
+		angle = angle - 1;
+		arc = Quat::makeYRotation(angle);
+		break;
+	case 'd':
+		angle = angle + 1;
+		arc = Quat::makeYRotation(angle);
+		break;
+	case 'w':
+		angle = angle + 1;
+		arc = Quat::makeXRotation(angle);
+		break;
+	case 's':
+		angle = angle - 1;
+		arc = Quat::makeXRotation(angle);
+		break;
+	case 'q':
+		angle = angle + 1;
+		arc = Quat::makeZRotation(angle);
+		break;
+	case 'e':
+		angle = angle - 1;
+		arc = Quat::makeZRotation(angle);
+		break;
+	}
+	arcMatrix = quatToMatrix(arc);
 }
+
+// Half Cooked ArcBall - Rotating in Only Y Direction using Mouse
+// Mouse Input to get the Initial Position of the input from the Mouse
 void mouse(int button, int state, int x, int y) {
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
 		arcball_on = true;
@@ -538,24 +624,19 @@ void mouse(int button, int state, int x, int y) {
 		arcball_on = false;
 	}
 }
+
+// Mouse Input to get the Final Position of the input from the Mouse
 void mouseMove(int x, int y) {
 	if (arcball_on) {  // if left button is pressed
 		cur_mx = x;
 		cur_my = y;
 		float v1_x = last_mx;
 		float v1_y = last_my;
-		//cout << v1_x<<endl;
 		float v2_x = cur_mx;
 		float v2_y = cur_my;
-		
-	    //angle = (last_mx * cur_mx + last_my * cur_my)/((sqrt(pow(v1_x,2)) + sqrt(pow(v1_y,2))) * (sqrt(pow(v2_x, 2)) + sqrt(pow(v2_y, 2))));
-		//angle = acos(angle);
-		
 		angle = angle + 1;
-		cout << angle <<endl;
-		Quat arc = Quat::makeYRotation(angle);
+		arc = Quat::makeYRotation(angle);
 		arcMatrix = quatToMatrix(arc);
-		//eye = eye * arcMatrix;
 	}
 }
 
@@ -569,11 +650,10 @@ void init() {
 	// Creating an Handle for Shader Programs 
 
 	program = glCreateProgram();
-
 	readAndCompileShader(program, "vertex.glsl", "fragment.glsl");
 	glUseProgram(program);
 
-	// Declaring the Position Attribute and Normal Attribute
+	// Declaring the Attributes (Position, Normal, TexCoord, Binormal, Tangent)
 
 	positionAttribute = glGetAttribLocation(program, "position");
 	normalAttribute = glGetAttribLocation(program, "normal");
@@ -586,47 +666,56 @@ void init() {
 	modelviewMatrixUniformLocation = glGetUniformLocation(program, "modelViewMatrix");
 	projectionMatrixUniformLocation = glGetUniformLocation(program, "projectionMatrix");
 	normalMatrixUniformLocation = glGetUniformLocation(program, "normalMatrix");
-	colorUniformLocation = glGetUniformLocation(program, "uColor");
 
-	//Diffuse Lighting
-	lightDirectionUniformLocation0 = glGetUniformLocation(program, "lights[0].lightDirection");
+	//Diffuse Lighting ---> Using 3 Lights in the Scene
+
+	lightDirectionUniformLocation0 = glGetUniformLocation(program, "lights[0].lightPosition");
 	lightColorUniform0 = glGetUniformLocation(program, "lights[0].lightColor");
 	SpecularLightUniform0 = glGetUniformLocation(program, "lights[0].specularLightColor");
 	
-	lightDirectionUniformLocation1 = glGetUniformLocation(program, "lights[1].lightDirection");
+	lightDirectionUniformLocation1 = glGetUniformLocation(program, "lights[1].lightPosition");
 	lightColorUniform1 = glGetUniformLocation(program, "lights[1].lightColor");
 	SpecularLightUniform1 = glGetUniformLocation(program, "lights[1].specularLightColor");
 	
-	lightDirectionUniformLocation2 = glGetUniformLocation(program, "lights[2].lightDirection");
+	lightDirectionUniformLocation2 = glGetUniformLocation(program, "lights[2].lightPosition");
 	lightColorUniform2 = glGetUniformLocation(program, "lights[2].lightColor");
 	SpecularLightUniform2 = glGetUniformLocation(program, "lights[2].specularLightColor");
 
-	//Texture
-	diffuseTexture = loadGLTexture("Monk_D.tga");
-	//diffuseTexture = loadGLTexture("Deadpool/DeadColor.tga");
+	//Texture Uniform Locations
+
 	diffuseTextureUniformLocation = glGetUniformLocation(program, "diffuseTexture");
 	specularUniformLocation = glGetUniformLocation(program, "specularTexture");
 	normalTextureUniformLocation = glGetUniformLocation(program, "normalTexture");
 
-	specularTexture = loadGLTexture("Monk_S.tga");
-	specularTexture1 = loadGLTexture("Batman_S.tga");
-	normalTexture = loadGLTexture("Monk_N.tga");
-	normalTexture1 = loadGLTexture("Batman_N.tga");
-	diffuseTexture1 = loadGLTexture("floor2.jpg");
-	diffuseTexture2 = loadGLTexture("Batman_D.tga");
-	//diffuseTexture2 = loadGLTexture("Batman/BB_D.tga");
-	//diffuseTexture = loadGLTexture("Deadpool/DeadColor.tga");
-	//diffuseTextureUniformLocation1 = glGetUniformLocation(program, "diffuseTexture1");
+	// To Emulate the Texture present for the Object : Executing Respective Code in the Fragment Shaders
+	text_off_uniform = glGetUniformLocation(program, "text_off");
 
-	// Drawing the Cube using the Geometry Maker Header File
-	cube();
-	sphere();
-	plane();
-	model("Monk_Giveaway.obj");	
+	// --------->  Drawing the Plane and the Models
+
+	//MODEL 1 ---> MONK Object with all Textures
+
+	model("Monk_Giveaway.obj");
+	diffuseTexture = loadGLTexture("Monk_D.tga");
+	specularTexture = loadGLTexture("Monk_S1.tga");
+	normalTexture = loadGLTexture("Monk_N1.tga");
+
+	// MODEL 2 ---> Batman Object with all Textures
+
 	model2("batman.obj");
-	//model2("Batman/Batman.obj");
+	diffuseTexture2 = loadGLTexture("Batman_D.tga");
+	specularTexture1 = loadGLTexture("Batman_S.tga");
+	normalTexture1 = loadGLTexture("Batman_N.tga");
+
+	// FLOOR --> The Floor constructed using a Plane from the Geometry Make containing the Textures
+
+	plane();
+	diffuseTexture1 = loadGLTexture("floor_D.tga");
+	specularTexture2 = loadGLTexture("floor_S.tga");
+	normalTexture2 = loadGLTexture("floor_N.tga");
+
+	//MODEL 3 ---> LUCY Object without any Textures
+
 	model1("lucy.obj");
-	//model2("Deadpool/dead_123456.obj");
 
 }
 
@@ -639,12 +728,13 @@ void idle(void) {
 }
 
 int main(int argc, char **argv) {
+
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-    glutInitWindowSize(500, 500);
-	glutCreateWindow("CS-6533 - 3D Object Modeling - Srinivas Piskala Ganesh Babu");
 
-	glDepthFunc(GL_GREATER);
+    // Window Initialization
+	glutInitWindowSize(screen_width, screen_height);
+	glutCreateWindow("CS-6533 - 3D Object Modeling - Srinivas Piskala Ganesh Babu");
 
 	// Property Enabling
 	glCullFace(GL_BACK);
@@ -653,6 +743,7 @@ int main(int argc, char **argv) {
 	glDepthFunc(GL_GREATER);
 	glReadBuffer(GL_BACK);
 
+	// Function Calls
     glewInit();
     
     glutDisplayFunc(display);

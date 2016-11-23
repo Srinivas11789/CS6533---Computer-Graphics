@@ -113,7 +113,20 @@ public:
     r.q_[0] = std::cos(h);
     return r;
   }
+  static Quat makeKRotation(Cvec3 k, const double ang) {
+	  Quat r;
+	  const double h = 0.5 * ang *CS175_PI / 180;
+
+	  r.q_[1] = k[0] * std::sin(h);
+	  r.q_[2] = k[1] * std::sin(h);
+	  r.q_[3] = k[2] * std::sin(h);
+	  r.q_[0] = std::cos(h);
+
+	  return r;
+  }
 };
+
+
 
 inline double dot(const Quat& q, const Quat& p) {
   double s = 0.0;
