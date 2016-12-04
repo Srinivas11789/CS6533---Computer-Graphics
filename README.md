@@ -6,4 +6,4 @@ NYU ID: spg349@nyu.edu - N13138339
 
 * Work on Computer Graphics
 
-Consists of the few assignments and works on Computer Graphics
+Consists of few assignments and works on Computer Graphics
