@@ -1,0 +1,2 @@
+﻿glsupport.obj : warning LNK4204: 'C:\Users\Srinivas11789\Desktop\Assignment4\CS6533---Computer-Graphics\Assignment - 4\Debug\vc120.pdb' is missing debugging information for referencing module; linking object as if no debug info
+  TemplateProject.vcxproj -> C:\Users\Srinivas11789\Desktop\Assignment4\CS6533---Computer-Graphics\Assignment - 4\Debug\TemplateProject.exe
