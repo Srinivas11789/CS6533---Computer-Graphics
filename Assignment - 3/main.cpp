@@ -59,9 +59,7 @@ GLuint normalTexture2;
 
 // Texture Uniform Locations
 GLuint specularUniformLocation;
-GLuint specularUniformLocation1;
 GLuint diffuseTextureUniformLocation;
-GLuint diffuseTextureUniformLocation1;
 GLuint normalTextureUniformLocation;
 
 //Indices
@@ -503,7 +501,7 @@ void display(void) {
 	glUniform1i(diffuseTextureUniformLocation, 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, diffuseTexture2);
-	glUniform1i(specularUniformLocation1, 1);
+	glUniform1i(specularUniformLocation, 1);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, specularTexture1);
 	glUniform1i(normalTextureUniformLocation, 2);
