@@ -62,9 +62,7 @@ GLuint normalTexture2;
 
 // Texture Uniform Locations
 GLuint specularUniformLocation;
-GLuint specularUniformLocation1;
 GLuint diffuseTextureUniformLocation;
-GLuint diffuseTextureUniformLocation1;
 GLuint normalTextureUniformLocation;
 
 //Indices
@@ -109,8 +107,6 @@ GLuint screenFramebufferUniform3;
 GLuint screenTrianglesPositionAttribute4;
 GLuint screenTrianglesTexCoordAttribute4;
 GLuint screenFramebufferUniform4;
-
-int blur = 1;
 
 // Vertex Structure for Position and Normal
 struct VertexPNTBTG {
@@ -442,10 +438,15 @@ Cvec4 Light_Coord(Cvec3 c) {
 // Rendering Function which creates the Eye Matrix and maintains each object parameters
 void display(void) {
 
+	// Binding to the FrameBuffer One - For the 3d Scene Render 
+	// Using the Shaders for the 3d Scene Rendering
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 	glViewport(0, 0, screen_width, screen_height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Shader Program Handle for 3d Scene Rendering
 	glUseProgram(program);
+
 	// Varying Time Variable to Rotate the Light
 	float time = glutGet(GLUT_ELAPSED_TIME);
 
@@ -494,7 +495,7 @@ void display(void) {
 	glUniform3f(lightDirectionUniformLocation2, light_pos3[0], light_pos3[1], light_pos3[2]);
 	glUniform3f(lightColorUniform2, 1.0, 1.0, 1.0);
 	glUniform3f(SpecularLightUniform2, 1.0, 1.0, 1.0);
-	//glUniform1i(text_off_uniform, 0);
+	glUniform1i(text_off_uniform, 0);
 
 	//Monk Model Texture
 	glUniform1i(diffuseTextureUniformLocation, 0);
@@ -506,7 +507,7 @@ void display(void) {
 	glUniform1i(normalTextureUniformLocation, 2);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, normalTexture);
-	glUniform1i(text_off_uniform, 0);
+	
 	
 	// Monk Model Object and Draw
 	string type = "model";
@@ -535,7 +536,7 @@ void display(void) {
 	glUniform1i(diffuseTextureUniformLocation, 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, diffuseTexture2);
-	glUniform1i(specularUniformLocation1, 1);
+	glUniform1i(specularUniformLocation, 1);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, specularTexture1);
 	glUniform1i(normalTextureUniformLocation, 2);
@@ -563,6 +564,7 @@ void display(void) {
 	glUniform3f(lightDirectionUniformLocation2, light_pos3[0], light_pos3[1], light_pos3[2]);
 	glUniform3f(lightColorUniform2, 1.0, 1.0, 1.0);
 	glUniform3f(SpecularLightUniform2, 1.0, 1.0, 1.0);
+	glUniform1i(text_off_uniform, 0);
 
 	// Floor Texture
 	glUniform1i(diffuseTextureUniformLocation, 0);
@@ -574,7 +576,7 @@ void display(void) {
 	glUniform1i(normalTextureUniformLocation, 2);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, normalTexture2);
-	glUniform1i(text_off_uniform, 0);
+	
 
 	// Floor Object and Draw Call
 	string type1 = "plane";
@@ -594,20 +596,26 @@ void display(void) {
 	glDisableVertexAttribArray(tangentAttribute);
 	glDisableVertexAttribArray(binormalAttribute);
 
-
+	//Unbinding the FrameBuffer where the scene is rendered
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, screen_width, screen_height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	// Second Effect
+	// Gaussian Blur Code
+	// Binding to the frame buffer 2 with the frame Buffer texture of 1st frame buffer - to use the frame buffer texture
+	// 1 with 3d scene rendered and causing the horizontal blur
+	// Second Effect - Horizontal Blur
+
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer2);
 	glViewport(0, 0, screen_width, screen_height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	// Using the Shader program for horizontal blur
 	glUseProgram(program3);
 
 	glUniform1i(screenFramebufferUniform3, 0);
 
+	// Binding to the Frame Buffer 1 texture with the 3d scene
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, frameBufferTexture);
 
@@ -624,45 +632,19 @@ void display(void) {
 	glDisableVertexAttribArray(screenTrianglesPositionAttribute3);
 	glDisableVertexAttribArray(screenTrianglesTexCoordAttribute3);
 
+	// Unbinding the frame buffer 2 where the 3d scene with the horizontal blur was made
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, screen_width, screen_height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	/*
-	//Other Effect
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer2);
-	glViewport(0, 0, screen_width, screen_height);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glUseProgram(program2);
+ 	// Code for making the Vertical Blur over the Frame Buffer Texture 2 which has the 3d scene + Horizontal Blur
 
-	glUniform1i(screenFramebufferUniform, 0);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, frameBufferTexture);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vertPVBO1);
-	glVertexAttribPointer(screenTrianglesPositionAttribute, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(screenTrianglesPositionAttribute);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vertTVBO1);
-	glVertexAttribPointer(screenTrianglesTexCoordAttribute, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(screenTrianglesTexCoordAttribute);
-
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	glDisableVertexAttribArray(screenTrianglesPositionAttribute);
-	glDisableVertexAttribArray(screenTrianglesTexCoordAttribute);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//glViewport(0, 0, screen_width, screen_height);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-	*/
+	// Program handle with shaders for Vertical Blur
 	glUseProgram(program4);
+
 	glUniform1i(screenFramebufferUniform4, 0);
 
+	// Binding to Frame Buffer Texture 2 (Scene and the Horizontal Blur)
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, frameBufferTexture2);
 
@@ -750,17 +732,22 @@ void init() {
 
 	// Creating an Handle for Shader Programs 
 
+	// 3d Scene Shaders
 	program = glCreateProgram();
 	readAndCompileShader(program, "vertex.glsl", "fragment.glsl");
 
+	// Invert Color Shaders
 	program2 = glCreateProgram();
 	readAndCompileShader(program2, "vertex2.glsl", "fragment2.glsl");
 
+	// Horizontal Blur Shader
 	program3 = glCreateProgram();
 	readAndCompileShader(program3, "vertexH.glsl", "fragmentH.glsl");
 
+	// Vertical Blur Shader
 	program4 = glCreateProgram();
 	readAndCompileShader(program4, "vertexV.glsl", "fragmentV.glsl");
+	
 	// Program 2 Attributes
 
 	screenTrianglesPositionAttribute = glGetAttribLocation(program2, "position2");
@@ -839,7 +826,10 @@ void init() {
 
 	model1("lucy.obj");
 
-	//Frame Buffer 
+	// Post Processing Effect Setup Code
+
+	//Frame Buffer 1 and Depth Buffer 1 creation
+
 	glGenFramebuffers(1, &frameBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 	
@@ -853,7 +843,8 @@ void init() {
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, frameBufferTexture, 0);
 
-	//Depth Buffer
+	//Depth Buffer 1 creation
+
 	glGenTextures(1, &depthBufferTexture);
 	glBindTexture(GL_TEXTURE_2D, depthBufferTexture);
 
@@ -867,9 +858,9 @@ void init() {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
-	// Blur
+	// For 2 Post Processing Effects - creating another Frame Buffer 
 
-	//Frame Buffer 
+	//Frame Buffer 2 
 
 	glGenFramebuffers(1, &frameBuffer2);
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer2);
@@ -884,7 +875,8 @@ void init() {
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, frameBufferTexture2, 0);
 	
-	//Depth Buffer
+	//Depth Buffer 2 
+
 	glGenTextures(1, &depthBufferTexture2);
 	glBindTexture(GL_TEXTURE_2D, depthBufferTexture2);
 
@@ -899,7 +891,8 @@ void init() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-	// Two Triangles
+	// Two Triangles to draw over the screen to bring about the post processing effects
+	// Buffer Objects of the First Post Processing Shaders
 
 	glGenBuffers(1, &vertTVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, vertTVBO);
@@ -927,6 +920,8 @@ void init() {
 	};
 
 	glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(GLfloat), screenTrianglePositions, GL_STATIC_DRAW);
+
+	// Buffer Objects for the second pair of triangles for second post processing effect
 
 	glGenBuffers(1, &vertTVBO1);
 	glBindBuffer(GL_ARRAY_BUFFER, vertTVBO1);
