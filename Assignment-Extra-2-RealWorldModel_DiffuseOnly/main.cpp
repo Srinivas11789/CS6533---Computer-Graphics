@@ -457,35 +457,8 @@ void display(void) {
 	Cvec4 light_pos2 = Light_Coord(Cvec3(-3.0, 5.0, 1.0));
 	Cvec4 light_pos3 = Light_Coord(Cvec3(2.0, 3.0, (float)sin(time / 1000.0f) * 10));
 	Cvec4 light_pos4 = Light_Coord(Cvec3(3.0, 3.0, -6.0));
-	/*
-	// The LUCY Object Rendering
-	// LUCY Object Lighting using Varying Normal - No Texture
-	glUniform3f(lightDirectionUniformLocation0, light_pos1[0], light_pos1[1], light_pos1[2]);
-	glUniform3f(lightColorUniform0, 1.0, 0.5, 0.0);
-	glUniform3f(SpecularLightUniform0, 1.0, 1.0, 1.0);
-	glUniform3f(lightDirectionUniformLocation1, light_pos2[0], light_pos2[1], light_pos2[2]);
-	glUniform3f(lightColorUniform1, 1.0, 0.4, 0.0);
-	glUniform3f(SpecularLightUniform1, 1.0, 1.0, 1.0);
-	glUniform3f(lightDirectionUniformLocation2, light_pos3[0], light_pos3[1], light_pos3[2]);
-	glUniform3f(lightColorUniform2, 1.0, 1.0, 0.0);
-	glUniform3f(SpecularLightUniform2, 1.0, 1.0, 1.0);
-	glUniform1i(text_off_uniform, 1);
 	
-	
-	// Lucy Object and Draw Call
-
-	string type2 = "model2";
-	Entity *parent1;
-	parent1 = new Entity();
-	parent1->transform.rotation = Quat::makeYRotation(0.0f);
-	parent1->transform.position = Cvec3(1.0, -2.0, 1.0);
-	parent1->transform.scale = Cvec3(1.0, 1.0, 1.0);
-	parent1->parent = NULL;
-	parent1->Draw(inv(eye), positionAttribute, normalAttribute, texCoordAttribute, binormalAttribute, tangentAttribute, modelviewMatrixUniformLocation, normalMatrixUniformLocation, type2);
-	*/
-
-	
-	// The Monk Object Rendering
+	// The Heater Object Rendering
 
 	// Light Uniform Setting for Monk Model - texture Normal
 	glUniform3f(lightDirectionUniformLocation0, light_pos1[0], light_pos1[1], light_pos1[2]);
@@ -503,13 +476,6 @@ void display(void) {
 	glUniform1i(diffuseTextureUniformLocation, 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
-	//glUniform1i(specularUniformLocation, 1);
-	//glActiveTexture(GL_TEXTURE1);
-	//glBindTexture(GL_TEXTURE_2D, specularTexture);
-	//glUniform1i(normalTextureUniformLocation, 2);
-	//glActiveTexture(GL_TEXTURE2);
-	//glBindTexture(GL_TEXTURE_2D, normalTexture);
-	//glUniform1i(text_off_uniform, 0);
 	
 	// Monk Model Object and Draw
 	string type = "model";
@@ -521,8 +487,8 @@ void display(void) {
 	parent->parent = NULL;
 	parent->Draw(inv(eye), positionAttribute, normalAttribute, texCoordAttribute, binormalAttribute, tangentAttribute, modelviewMatrixUniformLocation, normalMatrixUniformLocation, type);
 
-    // The Batman Object Rendering
-	// Batman Object Lighting - texture Normal
+    // The Books Object Rendering
+	// Books Object Lighting - texture Normal
 	glUniform3f(lightDirectionUniformLocation0, light_pos1[0], light_pos1[1], light_pos1[2]);
 	glUniform3f(lightColorUniform0, 1.0, 1.0, 1.0);
 	glUniform3f(SpecularLightUniform0, 1.0, 1.0, 1.0);
@@ -534,24 +500,16 @@ void display(void) {
 	glUniform3f(SpecularLightUniform2, 1.0, 1.0, 1.0);
 	glUniform1i(text_off_uniform, 1);
 
-	//Batman Texture
+	//Books Texture
 	glUniform1i(diffuseTextureUniformLocation, 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, diffuseTexture2);
-	//glUniform1i(specularUniformLocation1, 1);
-	//glActiveTexture(GL_TEXTURE1);
-	//glBindTexture(GL_TEXTURE_2D, specularTexture1);
-	//glUniform1i(normalTextureUniformLocation, 2);
-	//glActiveTexture(GL_TEXTURE2);
-	//glBindTexture(GL_TEXTURE_2D, normalTexture1);
 
 	// Batman Object and Draw Call
 	string type3 = "model3";
 	Entity *parent2;
 	parent2 = new Entity();
-	//Quat::makeYRotation(180.0f)*Quat::makeXRotation(0.0f)*Quat::makeZRotation(-4.0f);
 	parent2->transform.rotation = Quat::makeYRotation(180.0f)*Quat::makeXRotation(2.3f)*Quat::makeZRotation(-5.3f);
-		//Quat::makeYRotation(90.0f)*Quat::makeXRotation(20.0f);
 	parent2->transform.position = Cvec3(-1.5, -1.9, 0.0);
 	parent2->transform.scale = Cvec3(0.4, 0.4, 0.4);
 	parent2->parent = NULL;
@@ -574,13 +532,6 @@ void display(void) {
 	glUniform1i(diffuseTextureUniformLocation, 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, diffuseTexture1);
-//	glUniform1i(specularUniformLocation, 1);
-//	glActiveTexture(GL_TEXTURE1);
-//	glBindTexture(GL_TEXTURE_2D, specularTexture2);
-//	glUniform1i(normalTextureUniformLocation, 2);
-//	glActiveTexture(GL_TEXTURE2);
-//	glBindTexture(GL_TEXTURE_2D, normalTexture2);
-	glUniform1i(text_off_uniform, 1);
 
 	// Floor Object and Draw Call
 	string type1 = "plane";
@@ -597,8 +548,8 @@ void display(void) {
 	glDisableVertexAttribArray(positionAttribute);
 	glDisableVertexAttribArray(normalAttribute);
 	glDisableVertexAttribArray(texCoordAttribute);
-	glDisableVertexAttribArray(tangentAttribute);
-	glDisableVertexAttribArray(binormalAttribute);
+//	glDisableVertexAttribArray(tangentAttribute);
+//	glDisableVertexAttribArray(binormalAttribute);
 
     glutSwapBuffers();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -716,14 +667,14 @@ void init() {
 
 	// --------->  Drawing the Plane and the Models
 
-	//MODEL 1 ---> MONK Object with all Textures
+	//MODEL 1 ---> Heater Object with all Textures
 
 	model("fblen.obj");
 	diffuseTexture = loadGLTexture("f_new.jpg");
 //	specularTexture = loadGLTexture("Monk_S1.tga");
 //	normalTexture = loadGLTexture("Monk_N1.tga");
 
-	// MODEL 2 ---> Batman Object with all Textures
+	// MODEL 2 ---> Books Object with all Textures
 
 	model2("bblend.obj");
 	diffuseTexture2 = loadGLTexture("b_new.jpg");
